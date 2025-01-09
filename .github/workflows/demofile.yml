@@ -1,4 +1,4 @@
-name: Java CI
+name: Java CI (Error Simulation)
 
 on:
   push:
@@ -20,18 +20,12 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '8' # Intentionally incompatible Java version
 
-      - name: Clear Maven Cache
-        run: rm -rf ~/.m2/repository
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
+      - name: Install Old Maven
+        uses: s4u/maven-settings-action@v2
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          maven-version: '3.0' # Intentionally outdated Maven version
 
       - name: Build with Maven
         run: mvn clean install -X
