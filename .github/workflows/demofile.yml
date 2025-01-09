@@ -1,0 +1,38 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - main  # Run workflow when changes are pushed to the main branch
+  pull_request:
+    branches:
+      - main  # Run workflow on pull requests to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up JDK
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin' # Install Temurin JDK (formerly AdoptOpenJDK)
+          java-version: '17'     # Specify Java version (e.g., 8, 11, 17)
+
+      # Step 3: Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Step 4: Build and test
+      - name: Build with Maven
+        run: mvn clean install -B
