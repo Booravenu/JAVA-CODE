@@ -1,4 +1,4 @@
-name: Java CI (Error Simulation)
+name: Java CI
 
 on:
   push:
@@ -7,32 +7,44 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK
+      # Step 2: Set up JDK
+      - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '8' # Intentionally incompatible Java version
+          java-version: '11'
 
-      - name: Install Old Maven
-        uses: s4u/maven-settings-action@v2
+      # Step 3: Cache Maven dependencies for faster builds
+      - name: Cache Maven packages
+        uses: actions/cache@v3
         with:
-          maven-version: '3.0' # Intentionally outdated Maven version
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
+      # Step 4: Build the project using Maven
       - name: Build with Maven
-        run: mvn clean install -X
+        run: mvn clean install
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+      # Step 5: Run tests using Maven
+      - name: Run tests
+        run: mvn test
+
+      # Step 6: Upload test results as artifacts (Using the latest version v4)
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: target/**/* # Replace with the correct path for your artifacts
-
+          name: test-results
+          path: target/surefire-reports/
