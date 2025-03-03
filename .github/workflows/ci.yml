@@ -42,11 +42,11 @@ jobs:
       - name: Run tests
         run: mvn test
 
-      # Optional: Generate a test coverage report using JaCoCo (for Maven)
+      # Step 6: Generate code coverage with JaCoCo without changing pom.xml
       - name: Code Coverage
-        run: mvn jacoco:report
+        run: mvn org.jacoco:jacoco-maven-plugin:0.8.10:report
 
-      # Step 6: Upload test results as artifacts (Updated to v4)
+      # Step 7: Upload test results as artifacts
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
