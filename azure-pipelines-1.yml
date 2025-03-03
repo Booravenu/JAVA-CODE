@@ -1,0 +1,64 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+jobs:
+- job: build
+  displayName: 'Java CI Pipeline'
+  pool:
+    vmImage: 'ubuntu-latest'
+
+  steps:
+    # Step 1: Checkout code
+    - task: Checkout@1
+      displayName: 'Checkout code'
+
+    # Step 2: Set up JDK 11
+    - task: UseJava@1
+      inputs:
+        versionSpec: '11'
+        jdkArchitecture: 'x64'
+        distribution: 'temurin'
+
+    # Step 3: Cache Maven dependencies
+    - task: Cache@2
+      displayName: 'Cache Maven dependencies'
+      inputs:
+        key: 'maven | "$(Agent.OS)" | pom.xml'
+        path: $(MavenCacheFolder)
+        cacheHitVar: CACHE_RESTORED
+      variables:
+        MavenCacheFolder: ~/.m2/repository
+
+    # Step 4: Build with Maven
+    - script: mvn clean install
+      displayName: 'Build with Maven'
+
+    # Step 5: Run tests
+    - script: mvn test
+      displayName: 'Run tests'
+
+    # Step 6: Code coverage with JaCoCo
+    - script: mvn org.jacoco:jacoco-maven-plugin:0.8.10:report
+      displayName: 'Generate code coverage with JaCoCo'
+
+    # Step 7: Publish test results
+    - task: PublishTestResults@2
+      displayName: 'Publish test results'
+      inputs:
+        testResultsFiles: 'target/surefire-reports/*.xml'
+        mergeTestResults: true
+
+    # Step 8: Publish test artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload test results'
+      inputs:
+        targetPath: 'target/surefire-reports'
+        artifactName: 'test-results'
+        publishLocation: 'pipeline'
